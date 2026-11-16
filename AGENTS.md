@@ -14,6 +14,11 @@
 
 Один контекст: `GLOSSARY.md` и `docs/adr/` в корне репозитория. Подробнее — `docs/agents/domain.md`.
 
+## Проверка качества
+
+- После внесения изменений в код выполни `npx oxlint --fix`, а затем `vitest run --since-last-run`, чтобы протестировать только то, на что повлияли изменения.
+- Перед завершением работы выполните `npx oxlint --deny-warnings --format=agent` и `vitest run` один раз для всего набора тестов.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
