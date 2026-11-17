@@ -15,19 +15,19 @@
 - shadcn настроен на стиль `base-nova` с примитивами Base UI (`@base-ui/react`), а не Radix: композиция через проп `render`, не `asChild`. Различия — `.agents/skills/shadcn/rules/base-vs-radix.md`.
 - Компоненты добавляйте через shadcn MCP (`opencode.json`), а не копированием из документации Radix.
 
-## Навыки агента
+## Agent skills
 
-### Трекер задач
+### Issue tracker
 
-Задачи ведутся в GitHub Issues репозитория `Barrierok/frontend-project-386` через CLI `gh`. Подробнее — `docs/agents/issue-tracker.md`.
+Задачи живут в GitHub Issues этого репозитория, работа через `gh` CLI. См. `docs/agents/issue-tracker.md`.
 
-### Метки триажа
+### Triage labels
 
-Стандартный набор из пяти ролей: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Подробнее — `docs/agents/triage-labels.md`.
+Канонические triage-метки: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. См. `docs/agents/triage-labels.md`.
 
-### Документация домена
+### Domain docs
 
-Один контекст: `GLOSSARY.md` и `docs/adr/` в корне репозитория. Подробнее — `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` и `docs/adr/` в корне репозитория. См. `docs/agents/domain.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
