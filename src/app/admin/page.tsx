@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 
 import { ComingSoon } from "@/components/coming-soon";
 
+const title = "Админка";
+
 export const metadata: Metadata = {
-  title: "Админка",
-  description: "Управление типами встреч и список записей скоро появится.",
+  title,
+  description: "Управление типами встреч и список записей скоро появятся.",
 };
 
 export default function AdminPage() {
   return (
     <ComingSoon
-      title="Админка"
+      title={title}
       description="Скоро здесь появятся типы встреч и список записей гостей."
     />
   );

@@ -3,12 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { siteLinks } from "@/lib/site-links";
 import { cn } from "@/lib/utils";
-
-const links = [
-  { href: "/booking", label: "Записаться" },
-  { href: "/admin", label: "Админка" },
-];
 
 export function SiteNav() {
   const pathname = usePathname();
@@ -16,8 +12,8 @@ export function SiteNav() {
   return (
     <nav aria-label="Основная навигация">
       <ul className="flex items-center gap-4 sm:gap-6">
-        {links.map(({ href, label }) => {
-          const isCurrent = pathname === href;
+        {siteLinks.map(({ href, label }) => {
+          const isCurrent = pathname === href || pathname.startsWith(`${href}/`);
 
           return (
             <li key={href}>

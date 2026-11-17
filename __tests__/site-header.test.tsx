@@ -1,12 +1,17 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/booking" }));
+const pathname = vi.hoisted(() => ({ current: "/booking" }));
+
+vi.mock("next/navigation", () => ({ usePathname: () => pathname.current }));
 
 import { SiteHeader } from "@/components/site-header";
 
 describe("Шапка", () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    pathname.current = "/booking";
+  });
 
   it("ведёт на страницы записи и админки", () => {
     render(<SiteHeader />);
@@ -29,5 +34,14 @@ describe("Шапка", () => {
     render(<SiteHeader />);
 
     expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("href", "/");
+  });
+
+  it("не подсвечивает разделы на главной", () => {
+    pathname.current = "/";
+
+    render(<SiteHeader />);
+
+    expect(screen.getByRole("link", { name: "Записаться" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Админка" })).not.toHaveAttribute("aria-current");
   });
 });

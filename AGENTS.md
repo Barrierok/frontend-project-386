@@ -12,7 +12,7 @@
 
 ## UI
 
-- shadcn настроен на стиль `base-nova` с примитивами Base UI (`@base-ui/react`), а не Radix: композиция через проп `render`, не `asChild`. Различия — `.agents/skills/shadcn/rules/base-vs-radix.md`.
+- shadcn настроен на стиль `base-sera` с примитивами Base UI (`@base-ui/react`), а не Radix: композиция через проп `render`, не `asChild`. Различия — `.agents/skills/shadcn/rules/base-vs-radix.md`.
 - Компоненты добавляйте через shadcn MCP (`opencode.json`), а не копированием из документации Radix.
 
 ## Agent skills

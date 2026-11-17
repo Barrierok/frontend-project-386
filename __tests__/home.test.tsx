@@ -39,6 +39,16 @@ describe("Главная страница", () => {
     expect(within(region).getAllByRole("listitem")).toHaveLength(3);
   });
 
+  it("нумерует шаги записи", () => {
+    render(<Page />);
+
+    const region = screen.getByRole("region", { name: "Как это работает" });
+
+    for (const number of ["01", "02", "03"]) {
+      expect(within(region).getByText(number)).toBeInTheDocument();
+    }
+  });
+
   it("предлагает записаться в конце страницы", () => {
     render(<Page />);
 

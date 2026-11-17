@@ -10,7 +10,7 @@ describe("Заглушки разделов", () => {
   it("страница записи сообщает, что запись скоро появится", () => {
     render(<BookingPage />);
 
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Запись на встречу");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Запись на звонок");
   });
 
   it("страница админки сообщает, что раздел скоро появится", () => {

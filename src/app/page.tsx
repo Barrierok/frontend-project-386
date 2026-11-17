@@ -1,9 +1,8 @@
-import { ArrowRight, CalendarDays, CircleCheck, Clock } from "lucide-react";
-import Link from "next/link";
+import { CalendarDays, CircleCheck, Clock } from "lucide-react";
 
+import { BookingCta } from "@/components/booking-cta";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 
 const features = [
   {
@@ -30,7 +29,7 @@ const steps = [
   },
   {
     title: "Найдите свободный слот",
-    description: "Календарь на две недели покажет только время, доступное для записи.",
+    description: "Календарь на две недели вперёд покажет, когда владелец календаря свободен.",
   },
   {
     title: "Подтвердите запись",
@@ -50,18 +49,15 @@ export default function Page() {
         <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-8 px-6 py-24 sm:py-32">
           <Badge variant="secondary">Быстрая запись на звонок</Badge>
 
-          <h1 className="max-w-3xl font-heading text-6xl font-extrabold tracking-tight uppercase sm:text-8xl">
+          <h1 className="max-w-3xl font-heading text-[clamp(3rem,12vw,6rem)] font-extrabold tracking-tight uppercase">
             CALENDAR
           </h1>
 
           <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Забронируйте встречу за минуту: выберите тип встречи и удобное время.
+            Запишитесь на звонок за минуту: выберите тип встречи и удобный слот.
           </p>
 
-          <Link href="/booking" className={buttonVariants({ size: "lg" })}>
-            Записаться
-            <ArrowRight data-icon="inline-end" aria-hidden />
-          </Link>
+          <BookingCta />
         </div>
       </section>
 
@@ -80,7 +76,9 @@ export default function Page() {
                 <Card className="h-full">
                   <CardHeader>
                     <Icon className="size-6 text-primary" aria-hidden />
-                    <CardTitle>{title}</CardTitle>
+                    <h3 className="font-heading text-lg font-semibold tracking-wider uppercase">
+                      {title}
+                    </h3>
                     <CardDescription>{description}</CardDescription>
                   </CardHeader>
                 </Card>
@@ -126,10 +124,7 @@ export default function Page() {
             Выберите тип встречи и удобный слот — остальное займёт минуту.
           </p>
 
-          <Link href="/booking" className={buttonVariants({ size: "lg" })}>
-            Записаться
-            <ArrowRight data-icon="inline-end" aria-hidden />
-          </Link>
+          <BookingCta />
         </div>
       </section>
     </main>
