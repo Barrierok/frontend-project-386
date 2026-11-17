@@ -1,15 +1,21 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const montserrat = Montserrat({ subsets: ["latin", "cyrillic"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Hello World",
-  description: "Страница Hello World",
+  title: {
+    default: "Calendar — запись на звонок",
+    template: "%s — Calendar",
+  },
+  description:
+    "Календарь звонков: выберите тип встречи и свободное время, чтобы записаться за минуту.",
 };
 
 export default function RootLayout({
@@ -18,8 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={cn("font-sans", inter.variable)}>
-      <body>{children}</body>
+    <html lang="ru" className={cn("font-sans", montserrat.variable)}>
+      <body className="flex min-h-svh flex-col">
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }
