@@ -28,7 +28,20 @@
 ```bash
 git clone https://github.com/Barrierok/frontend-project-386.git
 cd frontend-project-386
+npm ci
+cp .env.example .env.local
 ```
+
+### Переменные окружения
+
+Секреты в репозитории не хранятся: `.env.local` попадает в `.gitignore`, а шаблон с именами переменных — `.env.example`.
+
+| Переменная     | Назначение                                                                       |
+| -------------- | -------------------------------------------------------------------------------- |
+| `DATABASE_URL` | Рантайм-подключение через shared pooler Supabase в transaction mode (порт 6543). |
+| `DIRECT_URL`   | Подключение для миграций drizzle-kit через порт 5432 (session mode/direct).      |
+
+Обе строки берутся в Supabase Dashboard → **Connect**; `[YOUR-DATABASE-PASSWORD]` заменяется паролем БД. На Vercel те же имена задаются в Project Settings → Environment Variables. Без переменных `npm run check` и `npm run build` работают: на этапе сборки БД не нужна.
 
 ## Качество кода
 
