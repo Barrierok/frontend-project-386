@@ -169,7 +169,7 @@ pg_restore --no-owner --no-privileges --clean --if-exists --dbname="$DIRECT_URL"
 3. Workflow создаёт или обновляет release-PR с версией в `package.json` и записью в `CHANGELOG.md`.
 4. Мерж release-PR создаёт git-тег и GitHub Release.
 
-Версию и changelog вручную не правим — источник истины это коммиты. В настройках репозитория включено **Allow GitHub Actions to create and approve pull requests**, иначе `GITHUB_TOKEN` не сможет открыть release-PR. PR, созданный `GITHUB_TOKEN`, не запускает другие workflow; если проверки на release-PR нужны, добавьте отдельный PAT-секрет.
+Версию и changelog вручную не правим — источник истины это коммиты. В настройках репозитория включено **Allow GitHub Actions to create and approve pull requests**, иначе `GITHUB_TOKEN` не сможет открыть release-PR. PR, созданный `GITHUB_TOKEN`, не запускает остальные workflow автоматически: проверки на release-PR могут требовать подтверждения запуска. Если нужны автопроверки, добавьте отдельный PAT-секрет.
 
 ## Качество кода
 
