@@ -81,4 +81,16 @@ describe("isSlotBookable", () => {
       }),
     ).toBe(false);
   });
+
+  it("отклоняет старт с секундами и миллисекундами", () => {
+    for (const startsAt of ["2026-11-20T06:00:30.000Z", "2026-11-20T06:00:00.001Z"]) {
+      expect(
+        isSlotBookable({
+          startsAt: new Date(startsAt),
+          durationMinutes: 30,
+          now: NOW,
+        }),
+      ).toBe(false);
+    }
+  });
 });

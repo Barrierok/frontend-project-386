@@ -19,14 +19,26 @@ type InsertBookingValues = {
   guestEmail: string;
 };
 
-function hasStringCode(error: unknown): error is { code: string } {
-  return (
-    typeof error === "object" && error !== null && "code" in error && typeof error.code === "string"
-  );
+function findPgCode(error: unknown, code: string, seen: Set<unknown>): boolean {
+  if (typeof error !== "object" || error === null || seen.has(error)) {
+    return false;
+  }
+
+  seen.add(error);
+
+  if ("code" in error && typeof error.code === "string" && error.code === code) {
+    return true;
+  }
+
+  return findPgCode((error as { cause?: unknown }).cause, code, seen);
 }
 
+/**
+ * Ищет SQLSTATE в цепочке `cause`: Drizzle оборачивает ошибки драйвера
+ * в `DrizzleQueryError`, поэтому код Postgres лежит не на верхнем уровне.
+ */
 export function hasPgCode(error: unknown, code: string): boolean {
-  return hasStringCode(error) && error.code === code;
+  return findPgCode(error, code, new Set());
 }
 
 /**
