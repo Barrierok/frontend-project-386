@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
+import { CreateEventTypeDialog } from "@/components/admin/create-event-type-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Booking, EventType } from "@/contract/schemas";
 import { formatLongDay, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -43,8 +45,11 @@ function countBookings(bookings: Booking[]): Map<string, number> {
   return counts;
 }
 
-export function AdminExperience({ eventTypes, bookings }: AdminExperienceProps) {
+export function AdminExperience({ eventTypes: initialEventTypes, bookings }: AdminExperienceProps) {
+  const [eventTypes, setEventTypes] = useState(initialEventTypes);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const counts = countBookings(bookings);
   const filtered = selectedId
     ? bookings.filter(({ eventType }) => eventType.id === selectedId)
@@ -54,9 +59,14 @@ export function AdminExperience({ eventTypes, bookings }: AdminExperienceProps) 
   return (
     <div className="grid gap-10 lg:grid-cols-[18rem_1fr]">
       <aside aria-labelledby="event-types-heading" className="flex flex-col gap-3">
-        <h2 id="event-types-heading" className="font-heading text-xl font-semibold tracking-wide">
-          Типы событий
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="event-types-heading" className="font-heading text-xl font-semibold tracking-wide">
+            Типы событий
+          </h2>
+          <Button type="button" size="xs" variant="outline" onClick={() => setCreateOpen(true)}>
+            Новый тип
+          </Button>
+        </div>
 
         {eventTypes.length === 0 ? (
           <p className="text-sm leading-relaxed text-muted-foreground">
@@ -68,7 +78,10 @@ export function AdminExperience({ eventTypes, bookings }: AdminExperienceProps) 
               <button
                 type="button"
                 aria-pressed={selectedId === null}
-                onClick={() => setSelectedId(null)}
+                onClick={() => {
+                  setSelectedId(null);
+                  setCreatedId(null);
+                }}
                 className={cn(
                   "flex w-full items-center justify-between gap-3 border-b px-2 py-3 text-left text-sm transition-colors hover:bg-muted",
                   selectedId === null && "bg-foreground text-background hover:bg-foreground",
@@ -83,14 +96,21 @@ export function AdminExperience({ eventTypes, bookings }: AdminExperienceProps) 
                 <button
                   type="button"
                   aria-pressed={selectedId === eventType.id}
-                  onClick={() => setSelectedId(eventType.id)}
+                  onClick={() => {
+                    setSelectedId(eventType.id);
+                    setCreatedId(null);
+                  }}
                   className={cn(
                     "flex w-full items-center justify-between gap-3 border-b px-2 py-3 text-left text-sm transition-colors hover:bg-muted",
                     selectedId === eventType.id &&
                       "bg-foreground text-background hover:bg-foreground",
+                    createdId === eventType.id && "ring-2 ring-primary ring-inset",
                   )}
                 >
-                  <span className="font-semibold">{eventType.title}</span>
+                  <span className="flex items-center gap-2 font-semibold">
+                    {eventType.title}
+                    {createdId === eventType.id ? <Badge variant="secondary">Новый</Badge> : null}
+                  </span>
                   <span className="text-xs font-semibold">{counts.get(eventType.id) ?? 0}</span>
                 </button>
               </li>
@@ -145,6 +165,17 @@ export function AdminExperience({ eventTypes, bookings }: AdminExperienceProps) 
           </div>
         )}
       </section>
+
+      <CreateEventTypeDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(created) => {
+          setEventTypes((current) => [...current, created]);
+          setSelectedId(created.id);
+          setCreatedId(created.id);
+          setCreateOpen(false);
+        }}
+      />
     </div>
   );
 }

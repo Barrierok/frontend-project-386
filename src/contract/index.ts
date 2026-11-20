@@ -6,6 +6,7 @@ import {
   availabilitySchema,
   bookingInputSchema,
   bookingSchema,
+  eventTypeInputSchema,
   eventTypeSchema,
 } from "./schemas";
 
@@ -16,6 +17,16 @@ export const eventTypesListContract = oc
 export const contract = oc.router({
   eventTypes: {
     list: eventTypesListContract,
+    create: oc
+      .input(eventTypeInputSchema)
+      .output(eventTypeSchema)
+      .errors({
+        EVENT_TYPE_EXISTS: {
+          status: 409,
+          message: "Тип события с таким идентификатором уже существует",
+        },
+      })
+      .route({ method: "POST", path: "/event-types" }),
   },
   availability: {
     get: oc

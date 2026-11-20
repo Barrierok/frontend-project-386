@@ -233,6 +233,61 @@ describe.skipIf(!testDatabaseUrl)("bookings.listUpcoming", () => {
   });
 });
 
+describe.skipIf(!testDatabaseUrl)("eventTypes.create", () => {
+  it("создаёт тип события и обрезает название", async () => {
+    const created = await client().eventTypes.create({
+      id: "intro-45",
+      title: "  Знакомство  ",
+      description: "  ",
+      durationMinutes: 45,
+    });
+
+    expect(created).toMatchObject({
+      id: "intro-45",
+      title: "Знакомство",
+      description: "",
+      durationMinutes: 45,
+    });
+  });
+
+  it("возвращает EVENT_TYPE_EXISTS на дубль слага", async () => {
+    await client().eventTypes.create({
+      id: "call-15",
+      title: "Звонок",
+      durationMinutes: 15,
+    });
+
+    await expect(
+      client().eventTypes.create({ id: "call-15", title: "Дубль", durationMinutes: 30 }),
+    ).rejects.toMatchObject({ code: "EVENT_TYPE_EXISTS" });
+  });
+
+  it("отклоняет границы длительности и формат слага", async () => {
+    for (const durationMinutes of [4, 545]) {
+      await expect(
+        client().eventTypes.create({
+          id: `call-${durationMinutes}`,
+          title: "Тип",
+          durationMinutes,
+        }),
+      ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    }
+
+    await expect(
+      client().eventTypes.create({ id: "Bad Slug", title: "Тип", durationMinutes: 30 }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("принимает границы 5 и 540 минут", async () => {
+    await expect(
+      client().eventTypes.create({ id: "call-5", title: "Пять", durationMinutes: 5 }),
+    ).resolves.toMatchObject({ durationMinutes: 5 });
+    await expect(
+      client().eventTypes.create({ id: "call-540", title: "Девять часов", durationMinutes: 540 }),
+    ).resolves.toMatchObject({ durationMinutes: 540 });
+  });
+});
+
 afterAll(async () => {
   await pool?.end();
 });

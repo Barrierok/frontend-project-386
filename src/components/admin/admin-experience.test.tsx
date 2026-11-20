@@ -1,9 +1,20 @@
+import { ORPCError } from "@orpc/client";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Booking, EventType } from "@/contract/schemas";
 
 import { AdminExperience } from "./admin-experience";
+
+const api = vi.hoisted(() => ({
+  create: vi.fn<() => Promise<EventType>>(),
+}));
+
+vi.mock("@/lib/orpc-client", () => ({
+  orpcClient: {
+    eventTypes: { create: api.create },
+  },
+}));
 
 const eventTypes: EventType[] = [
   {
@@ -55,6 +66,10 @@ function feed() {
 }
 
 describe("Кабинет владельца", () => {
+  beforeEach(() => {
+    api.create.mockReset();
+  });
+
   afterEach(cleanup);
 
   it("показывает все предстоящие записи по дням", () => {
@@ -92,5 +107,72 @@ describe("Кабинет владельца", () => {
     fireEvent.click(screen.getByRole("button", { name: /Звонок на 15 минут/ }));
 
     expect(screen.getByText("По этому типу события записей пока нет.")).toBeInTheDocument();
+  });
+
+  it("создаёт тип события и переключает фильтр на него", async () => {
+    const created: EventType = {
+      id: "intro-45",
+      title: "Знакомство",
+      description: "",
+      durationMinutes: 45,
+      createdAt: "2026-11-20T10:00:00.000Z",
+    };
+    api.create.mockResolvedValue(created);
+
+    render(<AdminExperience eventTypes={eventTypes} bookings={bookings} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Новый тип" }));
+    fireEvent.change(screen.getByLabelText("Слаг"), { target: { value: "intro-45" } });
+    fireEvent.change(screen.getByLabelText("Название"), { target: { value: "Знакомство" } });
+    fireEvent.change(screen.getByLabelText("Длительность, минуты"), { target: { value: "45" } });
+    fireEvent.click(screen.getByRole("button", { name: "Создать тип события" }));
+
+    expect(await screen.findByRole("button", { name: /Знакомство/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByText("Новый")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByText("По этому типу события записей пока нет.")).toBeInTheDocument();
+    expect(api.create).toHaveBeenCalledWith({
+      id: "intro-45",
+      title: "Знакомство",
+      description: "",
+      durationMinutes: 45,
+    });
+  });
+
+  it("показывает занятый слаг под полем и не закрывает модалку", async () => {
+    api.create.mockRejectedValue(
+      new ORPCError("EVENT_TYPE_EXISTS", {
+        defined: true,
+        status: 409,
+        message: "Тип события с таким идентификатором уже существует",
+      }),
+    );
+
+    render(<AdminExperience eventTypes={eventTypes} bookings={bookings} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Новый тип" }));
+    fireEvent.change(screen.getByLabelText("Слаг"), { target: { value: "call-15" } });
+    fireEvent.change(screen.getByLabelText("Название"), { target: { value: "Дубль" } });
+    fireEvent.click(screen.getByRole("button", { name: "Создать тип события" }));
+
+    expect(await screen.findByText("Такой слаг уже занят")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("валидирует поля формы создания типа", () => {
+    render(<AdminExperience eventTypes={eventTypes} bookings={bookings} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Новый тип" }));
+    fireEvent.change(screen.getByLabelText("Слаг"), { target: { value: "Плохой слаг" } });
+    fireEvent.change(screen.getByLabelText("Длительность, минуты"), { target: { value: "4" } });
+    fireEvent.click(screen.getByRole("button", { name: "Создать тип события" }));
+
+    expect(screen.getByText("Укажите название")).toBeInTheDocument();
+    expect(screen.getByText("Длительность от 5 до 540 минут")).toBeInTheDocument();
+    expect(screen.queryByText("Такой слаг уже занят")).not.toBeInTheDocument();
+    expect(api.create).not.toHaveBeenCalled();
   });
 });
