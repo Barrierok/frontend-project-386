@@ -1,4 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["dub1"]
+  "regions": ["dub1"],
+  "functions": {
+    "src/app/api/cron/ping/route.ts": {
+      "experimentalTriggers": [{ "type": "schedule/v1beta" }]
+    }
+  },
+  "schedules": {
+    "supabase-ping": {
+      "schedule": "0 6 * * *",
+      "function": "api/cron/ping"
+    }
+  }
 }

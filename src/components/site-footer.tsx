@@ -10,7 +10,7 @@ export function SiteFooter() {
         <div className="flex max-w-xs flex-col gap-2">
           <span className="font-heading text-sm font-semibold tracking-wide">Calendar</span>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Запись на звонки без переписки: выберите тип встречи и свободный слот.
+            Запись на звонки без переписки: выберите тип события и свободный слот.
           </p>
         </div>
 
