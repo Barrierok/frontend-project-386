@@ -20,11 +20,12 @@ function db() {
   return createTestDb(pool);
 }
 
-async function insertEventType(): Promise<void> {
-  await db().insert(eventTypes).values(buildEventType());
-}
-
-function insertSql(params: { startsAt: Date; endsAt: Date; onConflict: boolean }): {
+function insertSql(params: {
+  eventTypeId?: string;
+  startsAt: Date;
+  endsAt: Date;
+  onConflict: boolean;
+}): {
   text: string;
   values: unknown[];
 } {
@@ -36,7 +37,7 @@ function insertSql(params: { startsAt: Date; endsAt: Date; onConflict: boolean }
     text: `insert into bookings (event_type_id, starts_at, ends_at, guest_name, guest_email)
            values ($1, $2, $3, $4, $5)${conflict} returning id`,
     values: [
-      "call-30",
+      params.eventTypeId ?? "call-30",
       params.startsAt.toISOString(),
       params.endsAt.toISOString(),
       "Гость",
@@ -45,10 +46,19 @@ function insertSql(params: { startsAt: Date; endsAt: Date; onConflict: boolean }
   };
 }
 
+async function insertEventTypes(): Promise<void> {
+  await db()
+    .insert(eventTypes)
+    .values([
+      buildEventType({ id: "call-15", title: "Звонок на 15 минут", durationMinutes: 15 }),
+      buildEventType(),
+    ]);
+}
+
 describe.skipIf(!testDatabaseUrl)("Ограничение bookings_no_overlap", () => {
   beforeEach(async () => {
     await pool?.query("truncate bookings, event_types restart identity cascade");
-    await insertEventType();
+    await insertEventTypes();
   });
 
   afterAll(async () => {
@@ -76,6 +86,31 @@ describe.skipIf(!testDatabaseUrl)("Ограничение bookings_no_overlap", 
 
     const error = rejected[0];
     expect(error.reason).toMatchObject({ code: "23P01" });
+
+    const { rows } = await pool!.query("select count(*)::int as count from bookings");
+    expect(rows[0].count).toBe(1);
+  });
+
+  it("не разрешает частичное пересечение записей разных типов встреч", async () => {
+    const first = insertSql({
+      eventTypeId: "call-15",
+      startsAt: new Date("2026-11-20T06:00:00.000Z"),
+      endsAt: new Date("2026-11-20T06:15:00.000Z"),
+      onConflict: false,
+    });
+    await pool!.query(first.text, first.values);
+
+    const second = insertSql({
+      eventTypeId: "call-30",
+      startsAt: new Date("2026-11-20T06:10:00.000Z"),
+      endsAt: new Date("2026-11-20T06:40:00.000Z"),
+      onConflict: false,
+    });
+
+    await expect(pool!.query(second.text, second.values)).rejects.toMatchObject({
+      code: "23P01",
+      constraint: "bookings_no_overlap",
+    });
 
     const { rows } = await pool!.query("select count(*)::int as count from bookings");
     expect(rows[0].count).toBe(1);
