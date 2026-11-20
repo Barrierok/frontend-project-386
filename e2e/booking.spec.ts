@@ -7,7 +7,7 @@ const guest = {
 };
 
 test("гость занимает свободный слот, а владелец видит запись в админке", async ({ page }) => {
-  await test.step("гость открывает календарь и выбирает тип встречи", async () => {
+  await test.step("гость открывает календарь и выбирает тип события", async () => {
     await page.goto("/booking");
 
     await expect(page.getByRole("heading", { level: 1, name: "Запись на звонок" })).toBeVisible();

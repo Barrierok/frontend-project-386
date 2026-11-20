@@ -91,7 +91,7 @@ describe.skipIf(!testDatabaseUrl)("Ограничение bookings_no_overlap", 
     expect(rows[0].count).toBe(1);
   });
 
-  it("не разрешает частичное пересечение записей разных типов встреч", async () => {
+  it("не разрешает частичное пересечение записей разных типов событий", async () => {
     const first = insertSql({
       eventTypeId: "call-15",
       startsAt: new Date("2026-11-20T06:00:00.000Z"),
