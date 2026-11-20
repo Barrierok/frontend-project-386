@@ -54,6 +54,13 @@ export const bookingSchema = z.object({
   }),
 });
 
+export const bookingInputSchema = z.object({
+  eventTypeId: slugSchema,
+  startsAt: isoDateTimeSchema,
+  guestName: guestNameSchema,
+  guestEmail: guestEmailSchema,
+});
+
 export const availabilityInputSchema = z.object({
   eventTypeId: slugSchema,
 });
@@ -70,5 +77,6 @@ export const availabilitySchema = z.object({
 export type EventType = z.infer<typeof eventTypeSchema>;
 export type EventTypeInput = z.infer<typeof eventTypeInputSchema>;
 export type Booking = z.infer<typeof bookingSchema>;
+export type BookingInput = z.infer<typeof bookingInputSchema>;
 export type DaySlots = z.infer<typeof daySlotsSchema>;
 export type Availability = z.infer<typeof availabilitySchema>;
