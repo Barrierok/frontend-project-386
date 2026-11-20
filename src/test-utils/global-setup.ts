@@ -3,6 +3,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
+import * as schema from "@/db/schema";
+
 loadEnv({ path: [".env.local", ".env"], quiet: true });
 
 export const testDatabaseUrl = process.env.TEST_DATABASE_URL;
@@ -18,7 +20,7 @@ export function createTestPool(): Pool {
 }
 
 export function createTestDb(pool: Pool) {
-  return drizzle(pool);
+  return drizzle(pool, { schema });
 }
 
 /**

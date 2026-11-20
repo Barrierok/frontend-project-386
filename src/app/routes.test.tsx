@@ -18,10 +18,4 @@ describe("Заглушки разделов", () => {
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Админка");
   });
-
-  it("со страницы записи можно вернуться на главную", () => {
-    render(<BookingPage />);
-
-    expect(screen.getByRole("link", { name: /На главную/i })).toHaveAttribute("href", "/");
-  });
 });

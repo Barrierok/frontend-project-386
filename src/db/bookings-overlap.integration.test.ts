@@ -1,8 +1,12 @@
-import { drizzle } from "drizzle-orm/node-postgres";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import { buildBooking, buildEventType } from "@/test-utils/fixtures";
-import { createTestPool, hasTestDatabase, testDatabaseUrl } from "@/test-utils/global-setup";
+import {
+  createTestDb,
+  createTestPool,
+  hasTestDatabase,
+  testDatabaseUrl,
+} from "@/test-utils/global-setup";
 
 import { bookings, eventTypes } from "./schema";
 
@@ -13,7 +17,7 @@ function db() {
     throw new Error("TEST_DATABASE_URL не задан");
   }
 
-  return drizzle(pool);
+  return createTestDb(pool);
 }
 
 async function insertEventType(): Promise<void> {
