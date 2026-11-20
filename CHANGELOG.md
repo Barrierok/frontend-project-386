@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/Barrierok/frontend-project-386/compare/v1.0.0...v1.0.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* **server:** проверять минуту старта и SQLSTATE в cause ([#33](https://github.com/Barrierok/frontend-project-386/issues/33), [#34](https://github.com/Barrierok/frontend-project-386/issues/34)) ([0b4e05c](https://github.com/Barrierok/frontend-project-386/commit/0b4e05ca19b1506f953e4a9398f561a9c705dd5c))
+
 ## 1.0.0 (2026-11-20)
 
 
