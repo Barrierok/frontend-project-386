@@ -10,7 +10,7 @@ import {
   testDatabaseUrl,
 } from "@/test-utils/global-setup";
 
-import { GET } from "./[[...rest]]/route";
+import { GET, POST } from "./[[...rest]]/route";
 
 const pool = hasTestDatabase ? createTestPool() : undefined;
 const db = pool ? createTestDb(pool) : undefined;
@@ -36,8 +36,14 @@ describe.skipIf(!testDatabaseUrl)("RPC route", () => {
     process.env.DATABASE_URL = originalUrl;
   });
 
-  it("отвечает на GET со списком типов и запрещает кеширование", async () => {
-    const response = await GET(new Request("http://localhost/api/rpc/eventTypes/list"));
+  it("отвечает на POST со списком типов и запрещает кеширование", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/rpc/eventTypes/list", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ json: {} }),
+      }),
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");

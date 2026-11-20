@@ -10,9 +10,7 @@ import {
   eventTypeSchema,
 } from "./schemas";
 
-export const eventTypesListContract = oc
-  .output(z.array(eventTypeSchema))
-  .route({ method: "GET", path: "/event-types" });
+export const eventTypesListContract = oc.output(z.array(eventTypeSchema));
 
 export const contract = oc.router({
   eventTypes: {
@@ -25,8 +23,7 @@ export const contract = oc.router({
           status: 409,
           message: "Тип события с таким идентификатором уже существует",
         },
-      })
-      .route({ method: "POST", path: "/event-types" }),
+      }),
   },
   availability: {
     get: oc
@@ -34,8 +31,7 @@ export const contract = oc.router({
       .output(availabilitySchema)
       .errors({
         EVENT_TYPE_NOT_FOUND: { status: 404, message: "Тип события не найден" },
-      })
-      .route({ method: "GET", path: "/event-types/{eventTypeId}/availability" }),
+      }),
   },
   bookings: {
     create: oc
@@ -55,10 +51,7 @@ export const contract = oc.router({
           message: "Сервис перегружен, попробуйте ещё раз",
         },
         EVENT_TYPE_NOT_FOUND: { status: 404, message: "Тип события не найден" },
-      })
-      .route({ method: "POST", path: "/bookings" }),
-    listUpcoming: oc
-      .output(z.array(bookingSchema))
-      .route({ method: "GET", path: "/bookings/upcoming" }),
+      }),
+    listUpcoming: oc.output(z.array(bookingSchema)),
   },
 });
