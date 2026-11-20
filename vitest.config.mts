@@ -33,6 +33,7 @@ export default defineConfig({
         "src/components/ui/**",
         "src/app/layout.tsx",
         "src/app/globals.css",
+        "src/lib/config.ts",
         "src/test-utils/**",
         "**/*.d.ts",
       ],
