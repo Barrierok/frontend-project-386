@@ -15,6 +15,8 @@ async function handle(request: Request): Promise<Response> {
     return new Response("Not found", { status: 404 });
   }
 
+  response.headers.set("Cache-Control", "no-store");
+
   return response;
 }
 
