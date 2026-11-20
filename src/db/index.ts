@@ -1,6 +1,7 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+import { withLibpqSslCompat } from "./connection-url";
 import * as schema from "./schema";
 
 export type Database = NodePgDatabase<typeof schema>;
@@ -25,7 +26,7 @@ export function getDb(): Database {
     }
 
     const pool = new Pool({
-      connectionString,
+      connectionString: withLibpqSslCompat(connectionString),
       max: 1,
       // Transaction pooler Supabase не поддерживает named prepared statements.
       // node-postgres не готовит запросы с именами, поэтому опция драйверу не нужна.
