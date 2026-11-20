@@ -6,7 +6,8 @@
 
 Одно Next.js-приложение (App Router, React 19, Tailwind 4, shadcn/ui):
 
-- `npm run typecheck` — это `oxlint --type-aware --type-check`: линт, type-aware-правила и типы сразу. Отдельный `npm run lint` для полной проверки не нужен.
+- `npm run typecheck` — это `oxlint --type-aware --type-check`: линт, type-aware-правила и типы сразу.
+- `npm run check` — общая проверка: формат, линт, типы, API-тесты и браузерный e2e. Если `TEST_DATABASE_URL` не задан, команда сама поднимает тестовый Postgres из `docker-compose.test.yml`.
 - ESLint, Prettier и `next lint` не используются. Форматирование — `oxfmt` (настройки в `.oxfmtrc.json`), линт — `oxlint` (`oxlint.config.mts`).
 - `oxfmt` сортирует импорты и Tailwind-классы (по `src/app/globals.css`, функции `cn`/`cva`) и `package.json`. Не выравнивайте вручную — запускайте `npm run format`.
 

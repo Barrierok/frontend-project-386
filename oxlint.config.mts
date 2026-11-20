@@ -116,6 +116,13 @@ export default defineConfig({
         "testing-library/no-node-access": "off",
       },
     },
+    {
+      // Скрипты проверок сознательно вызывают docker/npm/npx из PATH.
+      files: ["scripts/**/*.mjs"],
+      rules: {
+        "sonarjs/no-os-command-from-path": "off",
+      },
+    },
   ],
   ignorePatterns: [
     "**/.next/**",

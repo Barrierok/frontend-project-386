@@ -78,7 +78,7 @@ npm run dev
 | `npm run test:coverage:run`    | Оба проекта с общим отчётом покрытия.                            |
 | `npm run test:e2e`             | E2E-сценарий бронирования в браузере (Playwright).               |
 | `npm run test:e2e:install`     | Установка браузера Chromium для Playwright.                      |
-| `npm run check`                | `format:check` + `typecheck` + `test:coverage:run`.              |
+| `npm run check`                | Формат, линт, типы, API-тесты и браузерный e2e-тест.             |
 | `npm run db:generate`          | Новая миграция по изменениям схемы.                              |
 | `npm run db:migrate`           | Применение миграций через `DIRECT_URL`.                          |
 | `npm run db:seed`              | Идемпотентные сиды `call-15` и `call-30`.                        |
@@ -97,7 +97,8 @@ npm run dev
   ```
 
 - Без `TEST_DATABASE_URL` интеграционный прогон пропускается с предупреждением. Отчёт покрытия печатается, но порог 80% (statements, lines, functions, branches) не гейтит. В CI с Postgres порог включён.
-- HTTP-маппинг ошибок проверяется через `RPCHandler`.
+- HTTP-маппинг ошибок проверяется через `RPCHandler`, поэтому интеграционные тесты покрывают и API-слой.
+- `npm run check` — общая проверка: формат, линт, типы, API-тесты и e2e. Она сама поднимает тестовый Postgres (или берёт `TEST_DATABASE_URL`) и выполняет всё одной командой; именно её запускают pre-push и CI.
 
 ### E2E
 
@@ -108,13 +109,17 @@ npm run test:e2e:install   # один раз — скачать Chromium
 npm run test:e2e
 ```
 
-`test:e2e` сам поднимает тестовый Postgres (`db:test:up`), применяет миграции, очищает записи, создаёт сиды, собирает приложение и запускает его на порту 3100 в отдельном каталоге `.next-e2e`. Сервер работает в production-режиме (`next start`) и смотрит в `TEST_DATABASE_URL` (по умолчанию — `postgres://postgres:postgres@localhost:5433/calendar_test`), поэтому локальная база из `.env.local` не затрагивается. Тот же сценарий выполняется в CI отдельным job `e2e`.
+`test:e2e` сам поднимает тестовый Postgres (`db:test:up`), применяет миграции, очищает записи, создаёт сиды, собирает приложение и запускает его на порту 3100 в отдельном каталоге `.next-e2e`. Сервер работает в production-режиме (`next start`) и смотрит в `TEST_DATABASE_URL` (по умолчанию — `postgres://postgres:postgres@localhost:5433/calendar_test`), поэтому локальная база из `.env.local` не затрагивается.
 
-Если `docker compose` поднимать не нужно (например, в CI), запускайте напрямую:
+Тест ходит в реально запущенное приложение и настоящий `/api/rpc`: ответы API бронирования не подменяются. Успешная запись затем проверяется на `/admin` через серверный рендеринг и ту же базу.
+
+Если `TEST_DATABASE_URL` уже задан (например, в CI), Docker не запускается, а используется существующий Postgres. E2E входит в `npm run check`, поэтому отдельный шаг в CI не нужен.
 
 ```bash
 TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5433/calendar_test npx playwright test
 ```
+
+Этот вызов нужен только для точечного прогона e2e без остальных проверок.
 
 ## База данных
 
