@@ -10,6 +10,14 @@
 - ESLint, Prettier и `next lint` не используются. Форматирование — `oxfmt` (настройки в `.oxfmtrc.json`), линт — `oxlint` (`oxlint.config.mts`).
 - `oxfmt` сортирует импорты и Tailwind-классы (по `src/app/globals.css`, функции `cn`/`cva`) и `package.json`. Не выравнивайте вручную — запускайте `npm run format`.
 
+## Коммиты
+
+- Формат — Conventional Commits (`feat`, `fix`, `docs`, `test`, `chore`, …), его проверяет commitlint.
+- Коммит реализации ссылается на тикет, который он закрывает: `feat: запись на свободный слот (#12)`. GitHub превращает номер в ссылку, и по истории видно, какой коммит какую задачу делал.
+- Номер тикета — в конце заголовка, после scope: `feat(booking): создать запись (#21)`.
+- Если коммит относится к нескольким задачам, перечислите их: `feat(booking): создать запись и ленту (#21, #22)`.
+- Тикет создаётся до коммита через `gh issue create` (см. `docs/agents/issue-tracker.md`). Опубликованную историю ради проставления номеров не переписывайте — правило действует для новых коммитов.
+
 ## UI
 
 - shadcn настроен на стиль `base-sera` с примитивами Base UI (`@base-ui/react`), а не Radix: композиция через проп `render`, не `asChild`. Различия — `.agents/skills/shadcn/rules/base-vs-radix.md`.
