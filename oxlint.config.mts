@@ -107,6 +107,15 @@ export default defineConfig({
         "eslint/no-console": "off",
       },
     },
+    {
+      // Playwright-тесты используют собственные page/locator-запросы,
+      // правила Testing Library к ним не применимы.
+      files: ["e2e/**/*.{js,jsx,ts,tsx}"],
+      rules: {
+        "testing-library/prefer-screen-queries": "off",
+        "testing-library/no-node-access": "off",
+      },
+    },
   ],
   ignorePatterns: [
     "**/.next/**",
