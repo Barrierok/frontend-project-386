@@ -19,6 +19,7 @@
     ".agents/**",
     ".next/**",
     "coverage/**",
+    "CHANGELOG.md",
     "package-lock.json",
     ".github/workflows/hexlet-check.yml"
   ]

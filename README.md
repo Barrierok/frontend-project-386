@@ -58,7 +58,7 @@ npm run dev
 
 `DATABASE_URL` и `DIRECT_URL` берутся в Supabase Dashboard → **Connect**. Пароль БД подставляется вместо `[YOUR-DATABASE-PASSWORD]`. На Vercel задаётся только `DATABASE_URL` (Production, Preview, Development); `DIRECT_URL` хранится как секрет GitHub-репозитория для workflow миграций. `TEST_DATABASE_URL` в облаке не нужна.
 
-`DIRECT_URL` читают только `drizzle.config.ts` и скрипты `db:*`, поэтому в клиентский бандл он не попадает. Сборка и `npm run check` без базы проходят: страницы с данными рендерятся динамически.
+`DIRECT_URL` читают только `drizzle.config.ts` и скрипты `db:*`, поэтому в клиентский бандл он не попадает. Сборка проходит без базы: страницы с данными рендерятся динамически. `npm run check` сам поднимает тестовый Postgres из `docker-compose.test.yml`, если `TEST_DATABASE_URL` не задан; без Docker нужна внешняя тестовая база.
 
 ## Команды
 
@@ -102,7 +102,7 @@ npm run dev
 
 ### E2E
 
-Сценарий бронирования закреплён браузерным тестом Playwright: гость выбирает тип встречи, занимает свободный слот и видит подтверждение, а владелец видит запись на `/admin`.
+Сценарий бронирования закреплён браузерным тестом Playwright: гость выбирает тип события, занимает свободный слот и видит подтверждение, а владелец видит запись на `/admin`.
 
 ```bash
 npm run test:e2e:install   # один раз — скачать Chromium
@@ -169,7 +169,7 @@ pg_restore --no-owner --no-privileges --clean --if-exists --dbname="$DIRECT_URL"
 3. Workflow создаёт или обновляет release-PR с версией в `package.json` и записью в `CHANGELOG.md`.
 4. Мерж release-PR создаёт git-тег и GitHub Release.
 
-Версию и changelog вручную не правим — источник истины это коммиты. В настройках репозитория включено **Allow GitHub Actions to create and approve pull requests**, иначе `GITHUB_TOKEN` не сможет открыть release-PR. PR, созданный `GITHUB_TOKEN`, не запускает остальные workflow автоматически: проверки на release-PR могут требовать подтверждения запуска. Если нужны автопроверки, добавьте отдельный PAT-секрет.
+Версию и changelog вручную не правим — источник истины это коммиты. `CHANGELOG.md` создаёт release-please, поэтому файл исключён из `oxfmt` и не участвует в `format:check`. В настройках репозитория включено **Allow GitHub Actions to create and approve pull requests**, иначе `GITHUB_TOKEN` не сможет открыть release-PR. PR, созданный `GITHUB_TOKEN`, не запускает остальные workflow автоматически: проверки на release-PR могут требовать подтверждения запуска. Если нужны автопроверки, добавьте отдельный PAT-секрет.
 
 ## Качество кода
 
