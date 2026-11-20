@@ -73,7 +73,9 @@ function AvailabilityPanel({
         setSelectedDate(
           (current) => current ?? days.find((day) => day.slots.length > 0)?.date ?? null,
         );
-      } catch {
+      } catch (error) {
+        console.error("Не удалось загрузить свободные слоты", error);
+
         if (!cancelled) {
           setAvailability({ status: "error" });
         }
@@ -228,6 +230,7 @@ export function BookingExperience({ eventTypes }: BookingExperienceProps) {
         </label>
         <Select
           value={selected.id}
+          items={eventTypes.map(({ id, title }) => ({ value: id, label: title }))}
           onValueChange={(value) => {
             if (typeof value === "string") {
               setSelectedId(value);
