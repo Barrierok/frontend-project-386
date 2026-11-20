@@ -1,8 +1,10 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { AvailabilityCalendar } from "@/components/booking/availability-calendar";
+import { TimePanel } from "@/components/booking/time-panel";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -12,12 +14,119 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { EventType } from "@/contract/schemas";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { DaySlots, EventType } from "@/contract/schemas";
 import { formatDuration } from "@/lib/format";
+import { orpcClient } from "@/lib/orpc-client";
 
 type BookingExperienceProps = {
   eventTypes: EventType[];
 };
+
+type AvailabilityState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; days: DaySlots[] };
+
+type AvailabilityPanelProps = {
+  eventType: EventType;
+  hasOtherEventTypes: boolean;
+};
+
+function AvailabilityPanel({ eventType, hasOtherEventTypes }: AvailabilityPanelProps) {
+  const [availability, setAvailability] = useState<AvailabilityState>({ status: "loading" });
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedStartsAt, setSelectedStartsAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const { days } = await orpcClient.availability.get({ eventTypeId: eventType.id });
+
+        if (cancelled) {
+          return;
+        }
+
+        setAvailability({ status: "ready", days });
+        setSelectedDate(
+          (current) => current ?? days.find((day) => day.slots.length > 0)?.date ?? null,
+        );
+      } catch {
+        if (!cancelled) {
+          setAvailability({ status: "error" });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [eventType.id]);
+
+  const days = availability.status === "ready" ? availability.days : [];
+  const selectedDay = days.find(({ date }) => date === selectedDate);
+  const hasAnySlots = days.some((day) => day.slots.length > 0);
+
+  return (
+    <div className="flex flex-col gap-8">
+      <section aria-labelledby="calendar-heading" className="flex flex-col gap-3">
+        <h2 id="calendar-heading" className="font-heading text-xl font-semibold tracking-wide">
+          Выберите день
+        </h2>
+
+        {availability.status === "loading" ? (
+          <Skeleton className="h-48 w-full" aria-label="Загрузка свободных дней" />
+        ) : null}
+
+        {availability.status === "error" ? (
+          <p
+            role="alert"
+            className="border border-destructive/40 px-4 py-3 text-sm text-destructive"
+          >
+            Не удалось загрузить свободные слоты. Обновите страницу.
+          </p>
+        ) : null}
+
+        {availability.status === "ready" ? (
+          <>
+            {!hasAnySlots ? (
+              <div className="border border-dashed px-4 py-3 text-sm leading-relaxed">
+                <p className="font-semibold">Свободных слотов в ближайшие 14 дней нет</p>
+                {hasOtherEventTypes ? (
+                  <p className="text-muted-foreground">
+                    Попробуйте выбрать другой тип события — возможно, там есть свободное время.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            <AvailabilityCalendar
+              days={days}
+              selectedDate={selectedDate}
+              onSelectDate={(date) => {
+                setSelectedDate(date);
+                setSelectedStartsAt(null);
+              }}
+            />
+          </>
+        ) : null}
+      </section>
+
+      <section aria-labelledby="time-heading" className="flex flex-col gap-3">
+        <h2 id="time-heading" className="font-heading text-xl font-semibold tracking-wide">
+          Выберите время
+        </h2>
+        <TimePanel
+          day={selectedDay}
+          selectedStartsAt={selectedStartsAt}
+          onSelectSlot={setSelectedStartsAt}
+        />
+      </section>
+    </div>
+  );
+}
 
 export function BookingExperience({ eventTypes }: BookingExperienceProps) {
   const [selectedId, setSelectedId] = useState(eventTypes[0]?.id ?? "");
@@ -28,7 +137,7 @@ export function BookingExperience({ eventTypes }: BookingExperienceProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <label
           htmlFor="event-type"
@@ -71,6 +180,12 @@ export function BookingExperience({ eventTypes }: BookingExperienceProps) {
           {selected.description ? <CardDescription>{selected.description}</CardDescription> : null}
         </CardHeader>
       </Card>
+
+      <AvailabilityPanel
+        key={selected.id}
+        eventType={selected}
+        hasOtherEventTypes={eventTypes.length > 1}
+      />
     </div>
   );
 }

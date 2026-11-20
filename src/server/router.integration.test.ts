@@ -1,9 +1,9 @@
 import { createRouterClient } from "@orpc/server";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-import { eventTypes } from "@/db/schema";
+import { bookings, eventTypes } from "@/db/schema";
 import { router } from "@/server/router";
-import { buildEventType } from "@/test-utils/fixtures";
+import { buildBooking, buildEventType } from "@/test-utils/fixtures";
 import {
   createTestDb,
   createTestPool,
@@ -14,14 +14,12 @@ import {
 const pool = hasTestDatabase ? createTestPool() : undefined;
 const db = pool ? createTestDb(pool) : undefined;
 
-function client() {
+function client(now = new Date("2026-11-20T06:00:00.000Z")) {
   if (!db) {
     throw new Error("TEST_DATABASE_URL не задан");
   }
 
-  return createRouterClient(router, {
-    context: { db, now: () => new Date("2026-11-20T06:00:00.000Z") },
-  });
+  return createRouterClient(router, { context: { db, now: () => now } });
 }
 
 describe.skipIf(!testDatabaseUrl)("eventTypes.list", () => {
@@ -66,6 +64,38 @@ describe.skipIf(!testDatabaseUrl)("eventTypes.list", () => {
       title: "Звонок на 15 минут",
       durationMinutes: 15,
       createdAt: "2026-11-19T10:00:00.000Z",
+    });
+  });
+
+  describe("availability.get", () => {
+    beforeEach(async () => {
+      await db!.insert(eventTypes).values(buildEventType({ id: "call-15", durationMinutes: 15 }));
+    });
+
+    it("возвращает все 14 дней и исключает занятые слоты", async () => {
+      await db!.insert(bookings).values(
+        buildBooking({
+          eventTypeId: "call-15",
+          startsAt: new Date("2026-11-20T06:00:00.000Z"),
+          endsAt: new Date("2026-11-20T06:30:00.000Z"),
+        }),
+      );
+
+      const { days } = await client().availability.get({ eventTypeId: "call-15" });
+
+      expect(days).toHaveLength(14);
+      expect(days[0].date).toBe("2026-11-20");
+
+      const firstDayTimes = days[0].slots.map(({ startsAt }) => startsAt.slice(11, 16));
+      expect(firstDayTimes).not.toContain("06:00");
+      expect(firstDayTimes).not.toContain("06:15");
+      expect(firstDayTimes).toContain("06:30");
+    });
+
+    it("возвращает EVENT_TYPE_NOT_FOUND для неизвестного типа", async () => {
+      await expect(client().availability.get({ eventTypeId: "call-99" })).rejects.toMatchObject({
+        code: "EVENT_TYPE_NOT_FOUND",
+      });
     });
   });
 });
