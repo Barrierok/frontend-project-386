@@ -22,8 +22,12 @@ vi.mock("@/lib/orpc-client", () => ({
   },
 }));
 
+const navigation = vi.hoisted(() => ({
+  refresh: vi.fn<() => void>(),
+}));
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: vi.fn<() => void>() }),
+  useRouter: () => ({ refresh: navigation.refresh }),
 }));
 
 const eventTypes: EventType[] = [
@@ -64,6 +68,7 @@ describe("Форма записи", () => {
     availability.get.mockReset();
     availability.get.mockResolvedValue({ days: availability.days });
     bookings.create.mockReset();
+    navigation.refresh.mockReset();
   });
 
   afterEach(cleanup);
@@ -173,5 +178,63 @@ describe("Форма записи", () => {
     expect(await screen.findByText("Укажите имя")).toBeInTheDocument();
     expect(screen.getByText("Введите корректный email")).toBeInTheDocument();
     expect(bookings.create).not.toHaveBeenCalled();
+  });
+
+  it("при 503 оставляет шторку открытой и показывает текст контракта", async () => {
+    bookings.create.mockRejectedValue(
+      new ORPCError("SLOT_TIMEOUT", {
+        defined: true,
+        status: 503,
+        message: "Сервис перегружен, попробуйте ещё раз",
+      }),
+    );
+
+    render(<BookingExperience eventTypes={eventTypes} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "09:00" }));
+    fireEvent.change(await screen.findByLabelText("Имя"), { target: { value: "Иван" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "ivan@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Подтвердить запись" }));
+
+    expect(await screen.findByText("Сервис перегружен, попробуйте ещё раз")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Имя")).toHaveValue("Иван");
+  });
+
+  it("на прочий сбой показывает общий текст и сохраняет контакты", async () => {
+    bookings.create.mockRejectedValue(new Error("network"));
+
+    render(<BookingExperience eventTypes={eventTypes} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "09:00" }));
+    fireEvent.change(await screen.findByLabelText("Имя"), { target: { value: "Иван" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "ivan@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Подтвердить запись" }));
+
+    expect(
+      await screen.findByText("Не удалось создать запись, попробуйте ещё раз"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("при исчезнувшем типе события закрывает шторку и обновляет страницу", async () => {
+    bookings.create.mockRejectedValue(
+      new ORPCError("EVENT_TYPE_NOT_FOUND", {
+        defined: true,
+        status: 404,
+        message: "Тип события не найден",
+      }),
+    );
+
+    render(<BookingExperience eventTypes={eventTypes} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "09:00" }));
+    fireEvent.change(await screen.findByLabelText("Имя"), { target: { value: "Иван" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "ivan@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Подтвердить запись" }));
+
+    expect(await screen.findByText("Тип события не найден")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(navigation.refresh).toHaveBeenCalled();
   });
 });
