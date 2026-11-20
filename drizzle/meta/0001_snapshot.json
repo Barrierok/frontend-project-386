@@ -1,0 +1,181 @@
+{
+  "id": "2e0da48f-925a-4f37-a771-49aa77c283b9",
+  "prevId": "1ff012a6-53be-4426-a911-3873216da03f",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.bookings": {
+      "name": "bookings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "event_type_id": {
+          "name": "event_type_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "guest_name": {
+          "name": "guest_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "guest_email": {
+          "name": "guest_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "bookings_starts_at_idx": {
+          "name": "bookings_starts_at_idx",
+          "columns": [
+            {
+              "expression": "starts_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "with": {},
+          "method": "btree",
+          "concurrently": false
+        }
+      },
+      "foreignKeys": {
+        "bookings_event_type_id_event_types_id_fk": {
+          "name": "bookings_event_type_id_event_types_id_fk",
+          "tableFrom": "bookings",
+          "columnsFrom": ["event_type_id"],
+          "tableTo": "event_types",
+          "columnsTo": ["id"],
+          "onUpdate": "no action",
+          "onDelete": "restrict"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "bookings_time_valid": {
+          "name": "bookings_time_valid",
+          "value": "\"bookings\".\"ends_at\" > \"bookings\".\"starts_at\""
+        },
+        "bookings_guest_name_length": {
+          "name": "bookings_guest_name_length",
+          "value": "char_length(btrim(\"bookings\".\"guest_name\")) between 1 and 100"
+        },
+        "bookings_guest_email_length": {
+          "name": "bookings_guest_email_length",
+          "value": "char_length(btrim(\"bookings\".\"guest_email\")) between 3 and 254"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.event_types": {
+      "name": "event_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "duration_minutes": {
+          "name": "duration_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "event_types_id_format": {
+          "name": "event_types_id_format",
+          "value": "\"event_types\".\"id\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'"
+        },
+        "event_types_id_length": {
+          "name": "event_types_id_length",
+          "value": "char_length(\"event_types\".\"id\") between 1 and 64"
+        },
+        "event_types_title_length": {
+          "name": "event_types_title_length",
+          "value": "char_length(btrim(\"event_types\".\"title\")) between 1 and 100"
+        },
+        "event_types_description_length": {
+          "name": "event_types_description_length",
+          "value": "char_length(\"event_types\".\"description\") <= 500"
+        },
+        "event_types_duration_range": {
+          "name": "event_types_duration_range",
+          "value": "\"event_types\".\"duration_minutes\" between 5 and 540 and \"event_types\".\"duration_minutes\" % 5 = 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
