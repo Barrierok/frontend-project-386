@@ -160,6 +160,17 @@ pg_restore --no-owner --no-privileges --clean --if-exists --dbname="$DIRECT_URL"
 
 Секреты в репозитории не хранятся: `.env.local` в `.gitignore`, шаблон — `.env.example`.
 
+## Релизы
+
+Релизы готовит [release-please](https://github.com/googleapis/release-please) в workflow `.github/workflows/release-please.yml`:
+
+1. Каждый push в `main` запускает workflow.
+2. По Conventional Commits release-please определяет следующую версию: `feat` → minor, `fix` → patch, breaking change → major.
+3. Workflow создаёт или обновляет release-PR с версией в `package.json` и записью в `CHANGELOG.md`.
+4. Мерж release-PR создаёт git-тег и GitHub Release.
+
+Версию и changelog вручную не правим — источник истины это коммиты. В настройках репозитория включено **Allow GitHub Actions to create and approve pull requests**, иначе `GITHUB_TOKEN` не сможет открыть release-PR. PR, созданный `GITHUB_TOKEN`, не запускает другие workflow; если проверки на release-PR нужны, добавьте отдельный PAT-секрет.
+
 ## Качество кода
 
 Для линтинга используется [oxlint](https://oxc.rs/docs/guide/usage/linter.html), для форматирования — [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html). В oxlint подключены плагины `eslint-plugin-sonarjs` и `eslint-plugin-testing-library`; их правила берутся из `recommended`-конфигов в `oxlint.config.mts` и не дублируются вручную.
