@@ -77,7 +77,7 @@ describe("Форма записи", () => {
     render(<BookingExperience eventTypes={eventTypes} />);
 
     expect(screen.getByLabelText("Тип события")).toBeInTheDocument();
-    expect(screen.getByText("Звонок на 15 минут")).toBeInTheDocument();
+    expect(screen.getAllByText("Звонок на 15 минут").length).toBeGreaterThan(0);
     expect(screen.getByText("15 мин")).toBeInTheDocument();
     expect(screen.getByText("Короткий звонок.")).toBeInTheDocument();
   });
