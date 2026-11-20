@@ -26,6 +26,24 @@ export const router = os.router({
 
       return rows.map(toEventType);
     }),
+    create: os.eventTypes.create.handler(async ({ input, context, errors }) => {
+      const [created] = await context.db
+        .insert(eventTypes)
+        .values({
+          id: input.id,
+          title: input.title,
+          description: input.description,
+          durationMinutes: input.durationMinutes,
+        })
+        .onConflictDoNothing({ target: eventTypes.id })
+        .returning();
+
+      if (!created) {
+        throw errors.EVENT_TYPE_EXISTS();
+      }
+
+      return toEventType(created);
+    }),
   },
   availability: {
     get: os.availability.get.handler(async ({ input, context, errors }) => {
