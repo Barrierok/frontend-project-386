@@ -148,10 +148,10 @@ on conflict (id) do nothing;
 
 ### 6.1 Транспорт и раскладка
 
-**oRPC 1.16.3 contract-first**, точный пин без `^`; документация — `https://v1.orpc.dev` ([ADR 0002](./adr/0002-orpc-contract-first.md)). Zod-схемы — единственный источник правды. OpenAPI-файла и кодогена нет.
+**oRPC 1.16.3 contract-first**, точный пин без `^`; документация — `https://v1.orpc.dev` ([ADR 0002](./adr/0002-orpc-contract-first.md), [ADR 0003](./adr/0003-zod-design-first-rpc.md)). Zod-схемы — единственный источник правды; контракт пишется до обработчиков (design-first в форме contract-as-code). OpenAPI-файла, TypeSpec и кодогена нет.
 
 ```
-src/contract/            # oc-контракт: схемы, .errors(), .route()
+src/contract/            # oc-контракт: схемы, .errors()
 src/server/router.ts     # implement(contract), обработчики
 src/server/context.ts    # тип и сборка { db, now }
 src/server/domain/       # generateSlots и прочие чистые правила
@@ -160,20 +160,20 @@ src/lib/orpc-client.ts   # браузерный клиент
 ```
 
 - Монтируется только `RPCHandler` из `@orpc/server/fetch` с `prefix: '/api/rpc'`; `OpenAPIHandler`, Server Actions, TanStack Query и генераторы хуков не используются.
-- У каждой процедуры стоит `.route({ method, path })`; у `GET`-процедур `method: 'GET'` обязателен (`strictGetMethodPluginEnabled`, иначе 405).
+- Route-метаданные не используются: `RPCHandler` маршрутизирует по именам процедур, все вызовы идут `POST` по `/api/rpc/<router>/<procedure>` ([ADR 0003](./adr/0003-zod-design-first-rpc.md)).
 - Server Components вызывают `createRouterClient(router, { context })` — в процессе, без HTTP. Браузер — `RPCLink` из `@orpc/client/fetch` + `createORPCClient`, тип `ContractRouterClient<typeof contract>`.
 - `context = { db, now }`: `db` — Drizzle-клиент из singleton-пула, `now` — функция текущего момента, подменяемая в тестах. В 1.16.3 `RPCHandler` принимает контекст только объектом, поэтому он собирается в обработчике на каждый запрос.
 - Все пакеты `@orpc/*` — ESM-only; нужен Node 22+.
 
 ### 6.2 Процедуры и схемы
 
-| Процедура               | HTTP-метаданные                      | Вход              | Выход                  |
-| ----------------------- | ------------------------------------ | ----------------- | ---------------------- |
-| `eventTypes.list`       | `GET /event-types`                   | —                 | `EventType[]`          |
-| `eventTypes.create`     | `POST /event-types`                  | `EventTypeInput`  | `EventType`            |
-| `availability.get`      | `GET /event-types/{id}/availability` | `{ eventTypeId }` | `{ days: DaySlots[] }` |
-| `bookings.create`       | `POST /bookings`                     | `BookingInput`    | `Booking`              |
-| `bookings.listUpcoming` | `GET /bookings/upcoming`             | —                 | `Booking[]`            |
+| Процедура               | RPC-путь                              | Вход              | Выход                  |
+| ----------------------- | ------------------------------------- | ----------------- | ---------------------- |
+| `eventTypes.list`       | `POST /api/rpc/eventTypes/list`       | —                 | `EventType[]`          |
+| `eventTypes.create`     | `POST /api/rpc/eventTypes/create`     | `EventTypeInput`  | `EventType`            |
+| `availability.get`      | `POST /api/rpc/availability/get`      | `{ eventTypeId }` | `{ days: DaySlots[] }` |
+| `bookings.create`       | `POST /api/rpc/bookings/create`       | `BookingInput`    | `Booking`              |
+| `bookings.listUpcoming` | `POST /api/rpc/bookings/listUpcoming` | —                 | `Booking[]`            |
 
 ```ts
 EventType      { id, title, description, durationMinutes, createdAt }
@@ -440,15 +440,15 @@ Unit, без БД:
 
 ## 12. Источники решений
 
-| Решение                     | Тикет / документ                                                                                                  |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Непересечение через EXCLUDE | [#8](https://github.com/Barrierok/frontend-project-386/issues/8), [ADR 0001](./adr/0001-booking-no-overlap.md)    |
-| Модель данных и сиды        | [#9](https://github.com/Barrierok/frontend-project-386/issues/9)                                                  |
-| Supabase и переменные       | [#10](https://github.com/Barrierok/frontend-project-386/issues/10)                                                |
-| Drizzle + `pg`              | [#11](https://github.com/Barrierok/frontend-project-386/issues/11)                                                |
-| Экраны, вариант C           | [#12](https://github.com/Barrierok/frontend-project-386/issues/12)                                                |
-| Сценарии и состояния UI     | [#13](https://github.com/Barrierok/frontend-project-386/issues/13)                                                |
-| oRPC-контракт и ошибки      | [#14](https://github.com/Barrierok/frontend-project-386/issues/14), [ADR 0002](./adr/0002-orpc-contract-first.md) |
-| Стратегия тестирования      | [#15](https://github.com/Barrierok/frontend-project-386/issues/15)                                                |
-| Миграции, сиды, бэкапы      | [#17](https://github.com/Barrierok/frontend-project-386/issues/17)                                                |
-| Contract-first исследование | [docs/research/contract-first-codegen.md](./research/contract-first-codegen.md)                                   |
+| Решение                     | Тикет / документ                                                                                                                                                  |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Непересечение через EXCLUDE | [#8](https://github.com/Barrierok/frontend-project-386/issues/8), [ADR 0001](./adr/0001-booking-no-overlap.md)                                                    |
+| Модель данных и сиды        | [#9](https://github.com/Barrierok/frontend-project-386/issues/9)                                                                                                  |
+| Supabase и переменные       | [#10](https://github.com/Barrierok/frontend-project-386/issues/10)                                                                                                |
+| Drizzle + `pg`              | [#11](https://github.com/Barrierok/frontend-project-386/issues/11)                                                                                                |
+| Экраны, вариант C           | [#12](https://github.com/Barrierok/frontend-project-386/issues/12)                                                                                                |
+| Сценарии и состояния UI     | [#13](https://github.com/Barrierok/frontend-project-386/issues/13)                                                                                                |
+| oRPC-контракт и ошибки      | [#14](https://github.com/Barrierok/frontend-project-386/issues/14), [ADR 0002](./adr/0002-orpc-contract-first.md), [ADR 0003](./adr/0003-zod-design-first-rpc.md) |
+| Стратегия тестирования      | [#15](https://github.com/Barrierok/frontend-project-386/issues/15)                                                                                                |
+| Миграции, сиды, бэкапы      | [#17](https://github.com/Barrierok/frontend-project-386/issues/17)                                                                                                |
+| Contract-first исследование | [docs/research/contract-first-codegen.md](./research/contract-first-codegen.md)                                                                                   |

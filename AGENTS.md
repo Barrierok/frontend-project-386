@@ -24,6 +24,12 @@
 - `CHANGELOG.md` создаёт release-please. Его не редактируют вручную и не форматируют: файл исключён из `oxfmt` в `.oxfmtrc.json`.
 - Миграции в `drizzle/` создаются `drizzle-kit`; применённые миграции не переписывают.
 
+## API и контракт
+
+- Контракт API — design-first на Zod-схемах в `src/contract/`: сначала схема и `oc`-контракт, потом обработчик в `src/server/router.ts`. Схемы — единственный источник правды для сервера, клиента и тестов.
+- Транспорт — RPC oRPC: `POST /api/rpc/<router>/<procedure>`; `RPCHandler` маршрутизирует по именам процедур. `.route({ method, path })` не используем — метаданные никем не читаются (ADR 0003).
+- OpenAPI, TypeSpec и генерация SDK не входят в проект. При появлении внешнего потребителя — отдельное решение с `OpenAPIHandler`, а не «задел» в контракте.
+
 ## UI
 
 - shadcn настроен на стиль `base-sera` с примитивами Base UI (`@base-ui/react`), а не Radix: композиция через проп `render`, не `asChild`. Различия — `.agents/skills/shadcn/rules/base-vs-radix.md`.

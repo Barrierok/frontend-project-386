@@ -19,13 +19,13 @@
 
 - Next.js 16 (App Router, React 19, Cache Components), TypeScript.
 - Tailwind CSS 4 и shadcn/ui на примитивах Base UI.
-- oRPC 1.16.3 contract-first: Zod-схемы в `src/contract`, `RPCHandler` на `/api/rpc`, браузерный клиент на `RPCLink`.
+- oRPC 1.16.3 contract-first (design-first на Zod-схемах): контракт в `src/contract` пишется до обработчиков, `RPCHandler` на `/api/rpc`, браузерный клиент на `RPCLink`.
 - Drizzle ORM и `pg`; PostgreSQL 17 в Supabase.
 - Vercel: функции в регионе `dub1`, ежедневный пинг базы через Vercel Schedules.
 - Vitest и Testing Library; интеграционные тесты идут против настоящего Postgres в Docker.
 - oxlint (`--type-aware --type-check`) и oxfmt.
 
-Архитектурные решения: [SPEC.md](./docs/SPEC.md), [PLAN.md](./docs/PLAN.md), [ADR 0001](./docs/adr/0001-booking-no-overlap.md), [ADR 0002](./docs/adr/0002-orpc-contract-first.md), [GLOSSARY.md](./GLOSSARY.md).
+Архитектурные решения: [SPEC.md](./docs/SPEC.md), [PLAN.md](./docs/PLAN.md), [ADR 0001](./docs/adr/0001-booking-no-overlap.md), [ADR 0002](./docs/adr/0002-orpc-contract-first.md), [ADR 0003](./docs/adr/0003-zod-design-first-rpc.md), [GLOSSARY.md](./GLOSSARY.md).
 
 ## Установка
 
