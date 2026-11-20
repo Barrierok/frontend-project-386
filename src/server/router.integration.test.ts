@@ -14,7 +14,7 @@ import {
 const pool = hasTestDatabase ? createTestPool() : undefined;
 const db = pool ? createTestDb(pool) : undefined;
 
-function client(now = new Date("2026-11-20T06:00:00.000Z")) {
+function client(now = new Date("2026-11-19T21:00:00.000Z")) {
   if (!db) {
     throw new Error("TEST_DATABASE_URL не задан");
   }
@@ -25,10 +25,6 @@ function client(now = new Date("2026-11-20T06:00:00.000Z")) {
 describe.skipIf(!testDatabaseUrl)("eventTypes.list", () => {
   beforeEach(async () => {
     await pool?.query("truncate bookings, event_types restart identity cascade");
-  });
-
-  afterAll(async () => {
-    await pool?.end();
   });
 
   it("возвращает пустой список, когда типов нет", async () => {
@@ -98,4 +94,145 @@ describe.skipIf(!testDatabaseUrl)("eventTypes.list", () => {
       });
     });
   });
+});
+
+function bookingInput(overrides: Record<string, string> = {}) {
+  return {
+    eventTypeId: "call-30",
+    startsAt: "2026-11-20T06:00:00.000Z",
+    guestName: "Иван",
+    guestEmail: "ivan@example.com",
+    ...overrides,
+  };
+}
+
+describe.skipIf(!testDatabaseUrl)("bookings.create", () => {
+  beforeEach(async () => {
+    await db!.insert(eventTypes).values(buildEventType({ id: "call-30", durationMinutes: 30 }));
+  });
+
+  it("создаёт запись на свободный слот и считает конец", async () => {
+    const booking = await client().bookings.create(bookingInput());
+
+    expect(booking).toMatchObject({
+      startsAt: "2026-11-20T06:00:00.000Z",
+      endsAt: "2026-11-20T06:30:00.000Z",
+      guestName: "Иван",
+      guestEmail: "ivan@example.com",
+      eventType: { id: "call-30", title: "Звонок на 30 минут", durationMinutes: 30 },
+    });
+  });
+
+  it("возвращает SLOT_TAKEN на повторное бронирование", async () => {
+    await client().bookings.create(bookingInput());
+
+    await expect(client().bookings.create(bookingInput())).rejects.toMatchObject({
+      code: "SLOT_TAKEN",
+    });
+  });
+
+  it("возвращает SLOT_UNAVAILABLE вне шага, рабочих часов и в прошлом", async () => {
+    await expect(
+      client().bookings.create(bookingInput({ startsAt: "2026-11-20T06:10:00.000Z" })),
+    ).rejects.toMatchObject({ code: "SLOT_UNAVAILABLE" });
+
+    await expect(
+      client().bookings.create(bookingInput({ startsAt: "2026-11-20T03:00:00.000Z" })),
+    ).rejects.toMatchObject({ code: "SLOT_UNAVAILABLE" });
+
+    await expect(
+      client().bookings.create(bookingInput({ startsAt: "2026-11-20T15:30:00.000Z" })),
+    ).rejects.toMatchObject({ code: "SLOT_UNAVAILABLE" });
+
+    await expect(
+      client(new Date("2026-11-20T07:00:00.000Z")).bookings.create(bookingInput()),
+    ).rejects.toMatchObject({ code: "SLOT_UNAVAILABLE" });
+  });
+
+  it("возвращает EVENT_TYPE_NOT_FOUND для несуществующего типа", async () => {
+    await expect(
+      client().bookings.create(bookingInput({ eventTypeId: "call-99" })),
+    ).rejects.toMatchObject({ code: "EVENT_TYPE_NOT_FOUND" });
+  });
+
+  it("исключает созданную запись из availability.get", async () => {
+    await client().bookings.create(bookingInput());
+
+    const { days } = await client().availability.get({ eventTypeId: "call-30" });
+    const times = days[0].slots.map(({ startsAt }) => startsAt);
+
+    expect(times).not.toContain("2026-11-20T06:00:00.000Z");
+    expect(times).toContain("2026-11-20T06:30:00.000Z");
+  });
+
+  it("при параллельной записи проходит ровно одна", async () => {
+    const secondPool = createTestPool();
+    const secondDb = createTestDb(secondPool);
+    const secondClient = createRouterClient(router, {
+      context: { db: secondDb, now: () => new Date("2026-11-20T00:00:00.000Z") },
+    });
+
+    try {
+      const results = await Promise.allSettled([
+        client().bookings.create(bookingInput()),
+        secondClient.bookings.create(bookingInput()),
+      ]);
+
+      const fulfilled = results.filter((result) => result.status === "fulfilled");
+      const rejected = results.filter((result) => result.status === "rejected");
+
+      expect(fulfilled).toHaveLength(1);
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].reason).toMatchObject({ code: "SLOT_TAKEN" });
+    } finally {
+      await secondPool.end();
+    }
+  });
+});
+
+describe.skipIf(!testDatabaseUrl)("bookings.listUpcoming", () => {
+  beforeEach(async () => {
+    await db!
+      .insert(eventTypes)
+      .values([
+        buildEventType({ id: "call-15", title: "Звонок на 15 минут", durationMinutes: 15 }),
+        buildEventType({ id: "call-30", title: "Звонок на 30 минут" }),
+      ]);
+  });
+
+  it("возвращает только будущие записи по возрастанию с типом события", async () => {
+    await db!.insert(bookings).values([
+      buildBooking({
+        eventTypeId: "call-30",
+        startsAt: new Date("2026-11-18T06:00:00.000Z"),
+        endsAt: new Date("2026-11-18T06:30:00.000Z"),
+        guestName: "Прошлый",
+      }),
+      buildBooking({
+        eventTypeId: "call-30",
+        startsAt: new Date("2026-11-20T07:00:00.000Z"),
+        endsAt: new Date("2026-11-20T07:30:00.000Z"),
+        guestName: "Второй",
+      }),
+      buildBooking({
+        eventTypeId: "call-15",
+        startsAt: new Date("2026-11-20T06:00:00.000Z"),
+        endsAt: new Date("2026-11-20T06:15:00.000Z"),
+        guestName: "Первый",
+      }),
+    ]);
+
+    const result = await client().bookings.listUpcoming();
+
+    expect(result.map(({ guestName }) => guestName)).toEqual(["Первый", "Второй"]);
+    expect(result[0].eventType).toEqual({
+      id: "call-15",
+      title: "Звонок на 15 минут",
+      durationMinutes: 15,
+    });
+  });
+});
+
+afterAll(async () => {
+  await pool?.end();
 });
