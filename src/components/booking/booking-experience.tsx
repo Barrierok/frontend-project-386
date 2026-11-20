@@ -130,7 +130,7 @@ function AvailabilityPanel({
                 <p className="font-semibold">Свободных слотов в ближайшие 14 дней нет</p>
                 {hasOtherEventTypes ? (
                   <p className="text-muted-foreground">
-                    Попробуйте выбрать другой тип события — возможно, там есть свободное время.
+                    Попробуйте выбрать другой тип события — возможно, там есть свободные слоты.
                   </p>
                 ) : null}
               </div>

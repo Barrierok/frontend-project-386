@@ -3,6 +3,7 @@ import { scheduling } from "@/lib/config";
 import { moscowDate, moscowMidnight } from "./slots";
 
 const DAY_MS = 86_400_000;
+const MINUTE_MS = 60_000;
 const MOSCOW_OFFSET_MS = 3 * 60 * 60 * 1000;
 
 export function moscowMinuteOfDay(date: Date): number {
@@ -19,10 +20,15 @@ type SlotInput = {
 
 /**
  * Слот допустим, если он в будущем, внутри 14-дневного окна по Москве,
- * целиком лежит в 09:00–18:00 и выровнен по шагу длительности.
+ * начинается ровно на минуте, целиком лежит в 09:00–18:00 и выровнен
+ * по шагу длительности.
  */
 export function isSlotBookable({ startsAt, durationMinutes, now }: SlotInput): boolean {
   if (startsAt.getTime() <= now.getTime()) {
+    return false;
+  }
+
+  if (startsAt.getTime() % MINUTE_MS !== 0) {
     return false;
   }
 

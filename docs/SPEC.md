@@ -398,8 +398,8 @@ Unit, без БД:
 - Unit и компонентные — `*.test.ts(x)` рядом с модулем; интеграционные — `*.integration.test.ts` рядом с серверным кодом; фикстуры — `src/test-utils/fixtures.ts`; снапшотов нет.
 - Существующие тесты из `__tests__/` переезжают к страницам; одна конвенция на репозиторий.
 - Скрипты: `test` / `test:run` (unit + компонентные), `test:integration`, `test:integration:run`, `test:coverage:run` (оба проекта, один отчёт).
-- `check` = `format:check && typecheck && test:coverage:run` — интеграционные входят в него.
-- Без `TEST_DATABASE_URL` интеграционный прогон скипается с явным предупреждением: покрытие печатается, но порог не гейтит. В CI есть Postgres и `TEST_DATABASE_URL`, порог гейтит.
+- `check` = `format:check && lint && typecheck && test:coverage:run && test:e2e` — интеграционные и браузерные тесты входят в него.
+- Если `TEST_DATABASE_URL` не задан, `check` сам поднимает Docker Postgres из `docker-compose.test.yml`; без Docker команда падает. Прямой запуск `vitest` без `TEST_DATABASE_URL` скипает интеграционные тесты с явным предупреждением: покрытие печатается, но порог не гейтит. В CI есть Postgres и `TEST_DATABASE_URL`, порог гейтит.
 - Покрытие — 80% глобально по `statements`, `lines`, `functions`, `branches`; исключения: `src/components/ui/**`, `src/app/layout.tsx`, `src/app/globals.css`, `drizzle/**` и миграции, конфиг-константы, `src/test-utils/**`, `vitest.*`, `next.config.*`, `**/*.d.ts`.
 
 ## 10. Вне рамок
@@ -413,6 +413,8 @@ Unit, без БД:
 - Пагинация ленты предстоящих записей.
 - OpenAPI-артефакт и внешний API-потребитель.
 - Server Actions, TanStack Query, e2e с `next start`.
+
+> После MVP тикеты #27/#28 добавили e2e с `next start`, а #30 — release-please. Это осознанное расширение рамок по требованиям приёмки; OpenAPI/TypeSpec по-прежнему вне рамок.
 
 ## 11. Расхождения и долги
 

@@ -14,8 +14,7 @@ export const metadata: Metadata = {
     default: "Calendar — запись на звонок",
     template: "%s — Calendar",
   },
-  description:
-    "Календарь звонков: выберите тип события и свободное время, чтобы записаться за минуту.",
+  description: "Календарь звонков: выберите тип события и слот, чтобы записаться за минуту.",
 };
 
 export default function RootLayout({
