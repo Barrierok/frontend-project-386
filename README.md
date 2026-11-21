@@ -62,6 +62,17 @@ npm run dev
 
 `DIRECT_URL` читают только `drizzle.config.ts` и скрипты `db:*`, поэтому в клиентский бандл он не попадает. Сборка проходит без базы: страницы с данными рендерятся динамически. `npm run check` сам поднимает тестовый Postgres из `docker-compose.test.yml`, если `TEST_DATABASE_URL` не задан; без Docker нужна внешняя тестовая база.
 
+## Запуск в Docker
+
+`Dockerfile` собирает приложение на `output: "standalone"` и запускает минимальный `server.js` в контейнере. Порт задаётся переменной `PORT` (по умолчанию `3000`), сервер слушает `0.0.0.0`. `DATABASE_URL` передаётся при запуске — на этапе сборки база не нужна.
+
+```bash
+docker build -t calendar .
+docker run --rm -p 3000:3000 -e PORT=3000 -e DATABASE_URL="$DATABASE_URL" calendar
+```
+
+Приложение откроется на http://localhost:3000. На Vercel `Dockerfile` не используется: платформа собирает Next.js нативно. Данные хранятся в PostgreSQL Supabase, а не в контейнере, поэтому перезапуск контейнера записи не сбрасывает.
+
 ## Команды
 
 | Команда                        | Что делает                                                       |
