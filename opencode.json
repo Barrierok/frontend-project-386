@@ -2,16 +2,20 @@
   "$schema": "https://opencode.ai/config.json",
   "formatter": true,
   "mcp": {
-    "shadcn": {
-      "type": "local",
-      "command": ["npx", "shadcn@latest", "mcp"],
-      "enabled": true
-    },
-    "next-devtools": {
-      "type": "local",
-      "command": ["npx", "-y", "next-devtools-mcp@latest"],
-      "environment": {},
-      "enabled": true
+    "servers": {
+      "shadcn": {
+        "type": "local",
+        "command": ["npx", "shadcn@latest", "mcp"]
+      },
+      "next-devtools": {
+        "type": "local",
+        "command": ["npx", "-y", "next-devtools-mcp@latest"],
+        "environment": {}
+      },
+      "vercel": {
+        "type": "remote",
+        "url": "https://mcp.vercel.com"
+      }
     }
   }
 }
