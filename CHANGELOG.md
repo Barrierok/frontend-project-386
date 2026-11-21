@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Barrierok/frontend-project-386/compare/v1.0.1...v1.1.0) (2026-11-21)
+
+
+### Features
+
+* **docker:** запускать приложение в контейнере по PORT ([#40](https://github.com/Barrierok/frontend-project-386/issues/40)) ([b9cad45](https://github.com/Barrierok/frontend-project-386/commit/b9cad454eeabe6a765807d59c9c4a4097c750b7e))
+
 ## [1.0.1](https://github.com/Barrierok/frontend-project-386/compare/v1.0.0...v1.0.1) (2026-11-20)
 
 
